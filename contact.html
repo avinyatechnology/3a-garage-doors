@@ -88,7 +88,10 @@
       <span class="eyebrow">Send a Message</span>
       <h2 id="form-title">How Can We Help You?</h2>
       <p>You may also contact us by form below.</p>
-      <form id="contact-form" novalidate>
+      <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" novalidate>
+        <input type="hidden" name="access_key" value="1ba49ea0-229b-49a8-9719-c1903ac12a7a">
+        <input type="hidden" name="from_name" value="3A Garage Doors Website">
+        <input type="checkbox" name="botcheck" class="form-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="form-grid">
           <div class="field"><label for="F-Name">First Name</label><input id="F-Name" name="F-Name" type="text" placeholder="First Name" autocomplete="given-name"><span class="field__err" aria-live="polite"></span></div>
           <div class="field"><label for="L-Name">Last Name</label><input id="L-Name" name="L-Name" type="text" placeholder="Last Name" autocomplete="family-name"><span class="field__err" aria-live="polite"></span></div>

@@ -73,7 +73,7 @@
   });
   if (lightbox) lightbox.addEventListener("click", function (e) { if (e.target !== lbImg) closeLightbox(); });
 
-  /* Contact form: validate, then open the visitor's email app with the message filled in */
+  /* Contact form: validate, then send through Web3Forms */
   var form = document.getElementById("contact-form");
   if (form) {
     var rules = {
@@ -82,6 +82,15 @@
       "phone": function (v) { return v.replace(/\D/g, "").length >= 10 ? "" : "Please enter a valid phone number."; },
       "email": function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "" : "Please enter a valid email address."; },
       "message": function (v) { return v.trim() ? "" : "Please tell us how we can help."; }
+    };
+    var fields = form.querySelectorAll(".field input, .field textarea");
+    var status = form.querySelector(".form-status");
+    var button = form.querySelector('button[type="submit"]');
+    var buttonHtml = button.innerHTML;
+    var setStatus = function (msg, type) {
+      status.textContent = msg;
+      status.classList.toggle("is-error", type === "error");
+      status.classList.toggle("is-success", type === "success");
     };
     var validate = function (field) {
       var rule = rules[field.name];
@@ -92,27 +101,54 @@
       wrap.querySelector(".field__err").textContent = msg;
       return !msg;
     };
-    form.querySelectorAll("input, textarea").forEach(function (f) {
+    fields.forEach(function (f) {
       f.addEventListener("blur", function () { validate(f); });
       f.addEventListener("input", function () { if (f.closest(".field").classList.contains("has-error")) validate(f); });
     });
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var ok = true;
-      form.querySelectorAll("input, textarea").forEach(function (f) { if (!validate(f)) ok = false; });
+      fields.forEach(function (f) { if (!validate(f)) ok = false; });
       if (!ok) { form.querySelector(".has-error input, .has-error textarea").focus(); return; }
+
       var d = new FormData(form);
-      var subject = d.get("subject") || "Garage door service request";
-      var body = [
-        "Name: " + d.get("F-Name") + " " + d.get("L-Name"),
-        "Phone: " + d.get("phone"),
-        "Email: " + d.get("email"),
-        "",
-        d.get("message")
-      ].join("\n");
-      window.location.href = "mailto:tony3ag@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-      var status = form.querySelector(".form-status");
-      if (status) status.textContent = "Thanks! Your email app should open so you can send your message.";
+      var name = (d.get("F-Name") + " " + d.get("L-Name")).trim();
+      var payload = {
+        access_key: d.get("access_key"),
+        from_name: d.get("from_name"),
+        botcheck: form.querySelector('[name="botcheck"]').checked,
+        subject: "New website inquiry: " + (d.get("subject") || "Garage door service request"),
+        name: name,
+        email: d.get("email"),
+        phone: d.get("phone"),
+        message: d.get("message"),
+        replyto: d.get("email")
+      };
+
+      button.disabled = true;
+      button.textContent = "Sending...";
+      setStatus("", "");
+      fetch(form.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) { return res.json().then(function (json) { return { ok: res.ok, json: json }; }); })
+        .then(function (r) {
+          if (r.ok && r.json.success) {
+            form.reset();
+            setStatus("Thanks, " + d.get("F-Name").trim() + "! Your message has been sent. We'll be in touch soon.", "success");
+          } else {
+            throw new Error(r.json.message || "Send failed");
+          }
+        })
+        .catch(function () {
+          setStatus("Sorry, your message couldn't be sent. Please call us at 281-656-8578.", "error");
+        })
+        .finally(function () {
+          button.disabled = false;
+          button.innerHTML = buttonHtml;
+        });
     });
   }
 

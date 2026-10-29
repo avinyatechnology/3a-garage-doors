@@ -578,6 +578,10 @@ p { margin: 0 0 1rem; }
 .field.has-error .field__err { display: block; }
 .form-actions { margin-top: 1.4rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .form-status { font-weight: 600; color: var(--blue); }
+.form-status.is-error { color: #c62f2f; }
+.form-status.is-success { color: #12804a; }
+.form-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.btn[disabled] { opacity: .65; cursor: progress; transform: none; box-shadow: none; }
 
 /* ---------- Mobile call bar ---------- */
 .callbar { display: none; }
